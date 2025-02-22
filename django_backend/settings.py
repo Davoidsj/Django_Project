@@ -9,7 +9,10 @@ SECRET_KEY = 'django-insecure-%jjwp=w2oy91n^m4(#_6qlt3ewoyijq6_uke3vcvngv6i_4!sd
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "django-project-users-demo-y0bv.onrender.com"
+]
+
 
 
 INSTALLED_APPS = [
