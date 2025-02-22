@@ -1,3 +1,4 @@
+import logging
 import matplotlib
 matplotlib.use("Agg")  
 
@@ -16,6 +17,9 @@ from django.http import JsonResponse, HttpRequest
 from .models import UserDB, UserStats
 from .serializers import UserDBSerializer, UserStatsSerializer
 from .firebase_helpers import fetch_firebase_users, post_to_users_db
+
+# Logger for debugging
+logger = logging.getLogger(__name__)
 
 def home_view(request: HttpRequest):
     return render(request, "templates.html")
@@ -57,6 +61,7 @@ class UserDBView(ListModelMixin, RetrieveModelMixin, GenericViewSet):
             post_to_users_db(firebase_users)
             return Response({"message": "Users synced successfully."}, status=status.HTTP_200_OK)
         except Exception as e:
+            logger.error(f"Sync Firebase Error: {e}", exc_info=True)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UserStatsView(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
