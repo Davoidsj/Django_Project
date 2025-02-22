@@ -90,9 +90,9 @@ class UserStatsView(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, Generi
                 return JsonResponse({"error": "No data to display"}, status=400)
 
             # Define colors
-            colors = ["#008000", "#0000FF", "#FF0000"]  # Green, Blue, Red
+            colors = ["#008000", "#0000FF", "#FF0000"] 
 
-            # Explode small slices for visibility
+           
             explode = [0.1 if size < sum(sizes) * 0.1 else 0 for size in sizes]  
 
             # Create figure
