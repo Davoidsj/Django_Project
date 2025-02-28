@@ -133,3 +133,24 @@ class UserStatsView(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, Generi
 
         except UserStats.DoesNotExist:
             return JsonResponse({"error": "User stats not found."}, status=404)
+
+    @action(detail=True, methods=["post"], url_path="update-likes")
+    def update_likes(self, request, id=None):
+        user_stats = self.get_object()
+        user_stats.likes += 1
+        user_stats.save()
+        return Response({"message": "Likes updated", "likes": user_stats.likes}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="update-dislikes")
+    def update_dislikes(self, request, id=None):
+        user_stats = self.get_object()
+        user_stats.dislikes += 1
+        user_stats.save()
+        return Response({"message": "Dislikes updated", "dislikes": user_stats.dislikes}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="update-watch")
+    def update_watch(self, request, id=None):
+        user_stats = self.get_object()
+        user_stats.watch += 1
+        user_stats.save()
+        return Response({"message": "Watch count updated", "watch": user_stats.watch}, status=status.HTTP_200_OK)
