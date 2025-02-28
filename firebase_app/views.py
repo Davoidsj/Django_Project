@@ -3,11 +3,11 @@ import matplotlib
 matplotlib.use("Agg")  
 
 import matplotlib.pyplot as plt
-from adjustText import adjust_text  
+from adjustText import adjust_text  # Import adjustText to fix overlapping labels
 from io import BytesIO
 import base64
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, UpdateModelMixin
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer
@@ -16,7 +16,6 @@ from django.shortcuts import render
 from django.http import JsonResponse, HttpRequest
 from .models import UserDB, UserStats
 from .serializers import UserDBSerializer, UserStatsSerializer
-from .firebase_helpers import fetch_firebase_users, post_to_users_db
 
 # Logger for debugging
 logger = logging.getLogger(__name__)
@@ -24,7 +23,7 @@ logger = logging.getLogger(__name__)
 def home_view(request: HttpRequest):
     return render(request, "templates.html")
 
-class UserDBView(ListModelMixin, RetrieveModelMixin, GenericViewSet):
+class UserDBView(CreateModelMixin, ListModelMixin, RetrieveModelMixin, GenericViewSet):
     queryset = UserDB.objects.all()
     serializer_class = UserDBSerializer
     lookup_field = "id"
@@ -54,15 +53,13 @@ class UserDBView(ListModelMixin, RetrieveModelMixin, GenericViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response({"users": serializer.data}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=["post"], url_path="sync-firebase")
-    def sync_firebase_users(self, request):
-        try:
-            firebase_users = fetch_firebase_users()
-            post_to_users_db(firebase_users)
-            return Response({"message": "Users synced successfully."}, status=status.HTTP_200_OK)
-        except Exception as e:
-            logger.error(f"Sync Firebase Error: {e}", exc_info=True)
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    @action(detail=False, methods=["post"], url_path="create-user")
+    def create_user(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserStatsView(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     queryset = UserStats.objects.all()
