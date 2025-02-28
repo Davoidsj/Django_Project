@@ -3,7 +3,7 @@ import matplotlib
 matplotlib.use("Agg")  
 
 import matplotlib.pyplot as plt
-from adjustText import adjust_text  # Import adjustText to fix overlapping labels
+from adjustText import adjust_text  
 from io import BytesIO
 import base64
 from rest_framework.viewsets import GenericViewSet

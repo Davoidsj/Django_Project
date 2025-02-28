@@ -2,6 +2,7 @@ import firebase_admin
 from firebase_admin import credentials, auth
 from .models import UserDB
 import os
+
 # Initialize Firebase
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 cred = credentials.Certificate(os.path.join(BASE_DIR, 'firebase_app', 'firebase_config.json'))
@@ -22,7 +23,7 @@ def fetch_firebase_users():
         page = page.get_next_page()
     return users
 
-
+# Post users to the database
 def post_to_users_db(firebase_users):
     for user_data in firebase_users:
         UserDB.objects.update_or_create(
@@ -33,3 +34,9 @@ def post_to_users_db(firebase_users):
                 'email': user_data['email'],
             }
         )
+
+# Function to create a custom token with extended expiration (24 hours)
+def create_custom_token(uid, expiration=86400):
+  
+    custom_token = auth.create_custom_token(uid)
+    return custom_token
