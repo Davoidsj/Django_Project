@@ -55,6 +55,7 @@ class UserDBView(CreateModelMixin, ListModelMixin, RetrieveModelMixin, GenericVi
 
     @action(detail=False, methods=["post"], url_path="create-user")
     def create_user(self, request):
+        logger.debug(f"Request data: {request.data}")
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
