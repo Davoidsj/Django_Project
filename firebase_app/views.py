@@ -1,4 +1,4 @@
-import logging
+import logging 
 import matplotlib
 matplotlib.use("Agg")  
 
@@ -65,6 +65,7 @@ class UserStatsView(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, Generi
     queryset = UserStats.objects.all()
     serializer_class = UserStatsSerializer
     lookup_field = "id"
+    lookup_url_kwarg = "id"
     renderer_classes = [JSONRenderer]
 
     def retrieve(self, request, *args, **kwargs):
@@ -91,22 +92,17 @@ class UserStatsView(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, Generi
             if sum(sizes) == 0:
                 return JsonResponse({"error": "No data to display"}, status=400)
 
-            # Define colors
             colors = ["#008000", "#0000FF", "#FF0000"]  # Green, Blue, Red
-
-            # Explode small slices for visibility
             explode = [0.1 if size < sum(sizes) * 0.1 else 0 for size in sizes]  
 
-            # Create figure
             fig, ax = plt.subplots(figsize=(6, 6))
             fig.patch.set_facecolor("#1f1f1f")  
             ax.set_facecolor("#1f1f1f")
 
-            # Create pie chart
             wedges, texts, autotexts = ax.pie(
                 sizes,
                 labels=labels,
-                autopct=lambda p: f'{p:.1f}%' if p > 1 else '',  # Hide very small percentages
+                autopct=lambda p: f'{p:.1f}%' if p > 1 else '',  
                 startangle=90,
                 colors=colors,
                 explode=explode,
@@ -115,19 +111,15 @@ class UserStatsView(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, Generi
                 textprops={"color": "white", "fontsize": 12},
             )
 
-            ax.axis("equal")  # Ensures a circular pie chart
-
-            # Adjust text positions to avoid overlap
+            ax.axis("equal")  
             all_texts = texts + autotexts
-            adjust_text(all_texts, only_move={'points': 'y', 'texts': 'y'})  # Adjusts y-axis positioning
+            adjust_text(all_texts, only_move={'points': 'y', 'texts': 'y'})  
 
-            # Save image
             img_io = BytesIO()
             plt.savefig(img_io, format="png", facecolor=fig.get_facecolor(), bbox_inches="tight")
             img_io.seek(0)
             plt.close(fig)
 
-            # Encode as base64
             chart_image = base64.b64encode(img_io.getvalue()).decode("utf-8")
             return JsonResponse({"pie_chart": chart_image}, status=200)
 
@@ -136,21 +128,22 @@ class UserStatsView(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, Generi
 
     @action(detail=True, methods=["post"], url_path="update-likes")
     def update_likes(self, request, id=None):
-        user_stats = self.get_object()
+        logger.debug(f"Received update-likes request for id: {id}")
+        user_stats, created = UserStats.objects.get_or_create(id=id)  # Ensure record exists
         user_stats.likes += 1
         user_stats.save()
         return Response({"message": "Likes updated", "likes": user_stats.likes}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"], url_path="update-dislikes")
     def update_dislikes(self, request, id=None):
-        user_stats = self.get_object()
+        user_stats, created = UserStats.objects.get_or_create(id=id)
         user_stats.dislikes += 1
         user_stats.save()
         return Response({"message": "Dislikes updated", "dislikes": user_stats.dislikes}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"], url_path="update-watch")
     def update_watch(self, request, id=None):
-        user_stats = self.get_object()
+        user_stats, created = UserStats.objects.get_or_create(id=id)
         user_stats.watch += 1
         user_stats.save()
         return Response({"message": "Watch count updated", "watch": user_stats.watch}, status=status.HTTP_200_OK)
